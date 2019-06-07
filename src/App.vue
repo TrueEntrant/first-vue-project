@@ -1,28 +1,79 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <CommentPage></CommentPage>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import CommentPage from "./containers/CommentPage";
 
 export default {
-  name: 'app',
+  name: "app",
   components: {
-    HelloWorld
+    CommentPage
   }
-}
+};
 </script>
 
 <style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-weight: 700;
+}
+.input-style {
+  background: transparent;
+  border: 1px solid lightgray;
+  border-radius: 3px;
+  padding: 5px;
+  width: 100%;
+}
+.content-style {
+  background: transparent;
+  padding: 5px;
+  font-size: 15px;
+  width: 100%;
+  text-align: start;
+  max-width: 90%;
+}
+img {
+  display: inline-block;
+  max-width: 150px;
+  width: 50%;
+  max-height: 150px;
+  z-index: 0;
+}
+.btn {
+  padding: 5px;
+  border-radius: 3px;
+  border: 1px solid rgb(33, 134, 112);
+  color: rgb(193, 240, 224);
+  font-weight: 700;
+  background: rgb(33, 134, 112);
+  text-transform: capitalize;
+}
+.link {
+  border: 0;
+  background: transparent;
+  text-transform: capitalize;
+}
+.underscore {
+  margin: 40px;
+  width: 80%;
+  height: 1px;
+  border: 0.2px solid lightgrey;
+}
+.link:hover {
+  text-decoration: underline;
+  color: rgb(33, 134, 112);
+}
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  /* margin-top: 60px; */
 }
 </style>
