@@ -1,11 +1,17 @@
 <template>
   <div id="comment-form">
     <div class="avatar-holder">
-      <label for="avatar-input">
-        <img v-if="userAvatar" src="userAvatar" alt="avatar" class="avatar">
+      <label :for="formId">
+        <img v-if="userAvatar" :src="userAvatar" alt="avatar" class="avatar">
         <img v-else src="@/assets/logo.png" alt="avatar" class="avatar">
-        <input id="avatar-input" type="file" class="hidden">
-        <button class="avatar-message btn">Upload new photo</button>
+        <input
+          accept="image/x-png, image/gif, image/jpeg"
+          @input="onFileChange"
+          :id="formId"
+          type="file"
+          class="hidden"
+        >
+        <div class="avatar-message btn">Upload new photo</div>
       </label>
     </div>
     <div class="text-wraper">
@@ -39,6 +45,8 @@
 
 
 <script>
+import * as Help from "@/shared/helpers";
+
 export default {
   name: "comment-form",
   props: {
@@ -53,10 +61,35 @@ export default {
       userName: this.isFromComment ? this.comment.author : "Anonimous",
       temp: this.isFromComment ? this.comment.author : "",
       text: this.isFromComment ? this.comment.text : "",
-      userAvatar: null
+      userAvatar: this.isFromComment ? this.comment.avatar : null,
+      comments: this.isFromComment ? this.comment.comments : [],
+      formId: Help.getId()
     };
   },
   methods: {
+    onFileChange: function(event) {
+      const file = event.target.files[0];
+      if (file && window.FileReader) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (
+            reader.result.match(new RegExp(/data:image\/([a-zA-Z]*);base64/g))
+          ) {
+            this.userAvatar = reader.result;
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    resetForm: function() {
+      this.nameChanging = false;
+      this.userName = "Anonimous";
+      this.temp = "";
+      this.text = "";
+      this.userAvatar = null;
+      this.comments = [];
+      this.onClose && this.onClose();
+    },
     startNameChange: function() {
       this.nameChanging = !this.nameChanging;
       this.temp = "";
@@ -73,11 +106,16 @@ export default {
     },
     onFormSubmit: function() {
       this.text &&
-        console.log({
-          author: this.userName,
-          text: this.text,
-          avatar: this.userAvatar
-        });
+        this.onSubmit(
+          {
+            author: this.userName,
+            text: this.text,
+            avatar: this.userAvatar,
+            comments: this.comments,
+            id: this.isFromComment ? this.comment.id : Help.getId()
+          },
+          () => this.resetForm()
+        );
     }
   }
 };
@@ -162,7 +200,7 @@ label {
 }
 .submit-wrapper {
   width: 100%;
-  margin: 5px;
+  margin: 0 10px;
   display: flex;
   justify-content: flex-end;
 }

@@ -3,12 +3,15 @@
     <header>Leave your thoughts here!</header>
     <div class="content-wrapper">
       <div class="form-holder">
-        <Form></Form>
+        <Form v-bind:onSubmit="onCommentAdd" v-bind:isFromComment="false"></Form>
       </div>
       <p class="underscore"></p>
-      <div v-for="(item, index) in comments" :key="index" class="comments-holder">
-        <Comment v-bind:comment="item"></Comment>
-        <p class="underscore"></p>
+      <div v-for="item in comments" :key="item.id" class="comments-holder">
+        <CommentsList
+          v-bind:comment="item"
+          v-bind:removeComment="onCommentDelete"
+          v-bind:changeComment="onCommentChange"
+        />
       </div>
     </div>
     <footer>&#169; Company name</footer>
@@ -18,17 +21,42 @@
 
 <script>
 import Form from "@/components/Form";
-import Comment from "@/components/Comment";
-import { comments } from "../../shared/initialData";
+import CommentsList from "@/components/Comment/List";
+import * as Help from "@/shared/helpers";
+import { mapActions } from "vuex";
 
 export default {
   name: "comments-page",
-  data: function() {
-    return { comments };
-  },
+
   components: {
     Form,
-    Comment
+    CommentsList
+  },
+  methods: {
+    ...mapActions(["update", "set", "storeSetAsync"]),
+    onDataUpdates: function() {
+      this.storeSetAsync();
+    },
+    onCommentAdd: function(comment, callback) {
+      this.comments.push(comment);
+      this.set(this.comments);
+      this.onDataUpdates();
+      callback && callback();
+    },
+    onCommentChange: function(comment, callback) {
+      this.set(Help.update(this.comments, comment, "id"));
+      this.onDataUpdates();
+      callback && callback();
+    },
+    onCommentDelete: function(id) {
+      this.set(Help.filter(this.comments, id, "id"));
+      this.onDataUpdates();
+    }
+  },
+  computed: {
+    comments: function() {
+      return this.$store.state.comments;
+    }
   }
 };
 </script>
@@ -41,7 +69,6 @@ export default {
   flex-direction: column;
   align-items: center;
 }
-
 .content-wrapper {
   margin-top: 80px;
   margin-bottom: 60px;
@@ -84,5 +111,6 @@ footer {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
 }
 </style>

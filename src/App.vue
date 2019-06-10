@@ -6,9 +6,11 @@
 
 <script>
 import CommentPage from "./containers/CommentPage";
+import { store } from "@/store";
 
 export default {
   name: "app",
+  store,
   components: {
     CommentPage
   }
@@ -21,6 +23,9 @@ export default {
   margin: 0;
   padding: 0;
   font-weight: 700;
+}
+.full-width {
+  width: 100%;
 }
 .input-style {
   background: transparent;

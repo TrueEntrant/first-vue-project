@@ -1,13 +1,11 @@
-export const localStorageSet = (key, data) => {
-  return localStorage
-    .setItem(key, JSON.stringify(data))
-    .then(() => true)
-    .catch(() => false);
+export const Set = data => {
+  return Promise.resolve(localStorage.setItem("vue-comments-data", JSON.stringify(data)));
 };
 
-export const localStorageGet = key => {
-  return localStorage
-    .setItem(key)
-    .then(data => JSON.parse(data))
-    .catch(() => false);
+export const Get = () => {
+  try {
+    return JSON.parse(localStorage.getItem("vue-comments-data"));
+  } catch (err) {
+    return false;
+  }
 };
