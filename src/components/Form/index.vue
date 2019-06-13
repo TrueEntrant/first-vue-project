@@ -1,5 +1,5 @@
 <template>
-  <div id="comment-form">
+  <div id="comment-form" ref="smoothHeight">
     <div class="avatar-holder">
       <label :for="formId">
         <img v-if="userAvatar" :src="userAvatar" alt="avatar" class="avatar">
@@ -17,7 +17,13 @@
     <div class="text-wraper">
       <div class="input-holder">
         <div v-if="nameChanging" class="user-holder">
-          <input type="text" class="input-style" :placeholder="userName" @input="onInputUserName">
+          <input
+            type="text"
+            ref="nick"
+            class="input-style"
+            :placeholder="userName"
+            @input="onInputUserName"
+          >
           <button class="cancel-input" @click="startNameChange">&#10008;</button>
           <button class="accept-input" @click="changeUserName">&#10004;</button>
         </div>
@@ -25,6 +31,7 @@
       </div>
       <div class="input-holder">
         <textarea
+          autofocus
           name="comment"
           class="input-style"
           id="comment-input"
@@ -46,28 +53,44 @@
 
 <script>
 import * as Help from "@/shared/helpers";
+import { defaultCommentForm as defaults } from "@/shared/settings";
+import smoothHeight from "vue-smooth-height";
 
 export default {
   name: "comment-form",
+  mixins: [smoothHeight],
+  mounted() {
+    this.$smoothElement({
+      el: this.$refs.smoothHeight,
+      hideOverflow: true
+    });
+  },
   props: {
     onClose: Function,
     onSubmit: Function,
     comment: Object,
     isFromComment: Boolean
   },
-  data: function() {
-    return {
-      nameChanging: false,
-      userName: this.isFromComment ? this.comment.author : "Anonimous",
-      temp: this.isFromComment ? this.comment.author : "",
-      text: this.isFromComment ? this.comment.text : "",
-      userAvatar: this.isFromComment ? this.comment.avatar : null,
-      comments: this.isFromComment ? this.comment.comments : [],
-      formId: Help.getId()
-    };
+  data() {
+    if (this.isFromComment) {
+      return {
+        ...defaults,
+        name: this.comment.author,
+        temp: this.comment.author,
+        text: this.comment.text,
+        avatar: this.comment.avatar,
+        comments: this.comment.comments,
+        formId: Help.getId()
+      };
+    } else {
+      return {
+        ...defaults,
+        formId: Help.getId()
+      };
+    }
   },
   methods: {
-    onFileChange: function(event) {
+    onFileChange(event) {
       const file = event.target.files[0];
       if (file && window.FileReader) {
         const reader = new FileReader();
@@ -81,41 +104,38 @@ export default {
         reader.readAsDataURL(file);
       }
     },
-    resetForm: function() {
-      this.nameChanging = false;
-      this.userName = "Anonimous";
-      this.temp = "";
-      this.text = "";
-      this.userAvatar = null;
-      this.comments = [];
+    resetForm() {
+      Object.assign(this.$data, this.$options.data.apply(this));
       this.onClose && this.onClose();
     },
-    startNameChange: function() {
+    startNameChange() {
       this.nameChanging = !this.nameChanging;
       this.temp = "";
+      setTimeout(() => {
+        this.$refs.nick && this.$refs.nick.focus();
+      }, 100);
     },
-    onInputUserName: function(event) {
+    onInputUserName(event) {
       this.temp = event.target.value;
     },
-    changeUserName: function() {
+    changeUserName() {
       this.userName = this.temp;
       this.startNameChange();
     },
-    changeUserComment: function(event) {
+    changeUserComment(event) {
       this.text = event.target.value;
     },
-    onFormSubmit: function() {
-      this.text &&
-        this.onSubmit(
-          {
-            author: this.userName,
-            text: this.text,
-            avatar: this.userAvatar,
-            comments: this.comments,
-            id: this.isFromComment ? this.comment.id : Help.getId()
-          },
-          () => this.resetForm()
-        );
+    onFormSubmit() {
+      if (this.text) {
+        const result = {
+          author: this.userName,
+          text: this.text,
+          avatar: this.userAvatar,
+          comments: this.comments,
+          id: this.isFromComment ? this.comment.id : Help.getId()
+        };
+        this.onSubmit(result, () => this.resetForm());
+      }
     }
   }
 };

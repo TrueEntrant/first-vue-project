@@ -1,60 +1,58 @@
 <template>
   <div id="comments-page">
-    <header>Leave your thoughts here!</header>
-    <div class="content-wrapper">
+    <div class="content-wrapper" ref="autoHeight">
       <div class="form-holder">
         <Form v-bind:onSubmit="onCommentAdd" v-bind:isFromComment="false"></Form>
       </div>
       <p class="underscore"></p>
-      <div v-for="item in comments" :key="item.id" class="comments-holder">
-        <CommentsList
-          v-bind:comment="item"
-          v-bind:removeComment="onCommentDelete"
-          v-bind:changeComment="onCommentChange"
-        />
-      </div>
+
+      <CommentsList v-bind:comments="comments" v-bind:change="onCommentsChange"/>
     </div>
-    <footer>&#169; Company name</footer>
+    <md-toolbar class="footer">
+      <span class="title">&#169; Company name</span>
+    </md-toolbar>
   </div>
 </template>
 
 
 <script>
 import Form from "@/components/Form";
-import CommentsList from "@/components/Comment/List";
-import * as Help from "@/shared/helpers";
+import CommentsList from "@/components/Comments/List";
 import { mapActions } from "vuex";
+import smoothHeight from "vue-smooth-height";
+import { COMMENTS_SET, COMMENTS_ADD } from "@/shared/constants";
 
 export default {
   name: "comments-page",
-
+  mixins: [smoothHeight],
+  mounted() {
+    this.$smoothElement({
+      el: this.$refs.autoHeight,
+      hideOverflow: true
+    });
+  },
+  data: () => ({
+    menuVisible: false,
+    prevHeight: 0
+  }),
   components: {
     Form,
     CommentsList
   },
   methods: {
-    ...mapActions(["update", "set", "storeSetAsync"]),
-    onDataUpdates: function() {
-      this.storeSetAsync();
-    },
-    onCommentAdd: function(comment, callback) {
-      this.comments.push(comment);
-      this.set(this.comments);
-      this.onDataUpdates();
+    ...mapActions([COMMENTS_ADD, COMMENTS_SET]),
+
+    onCommentAdd(comment, callback) {
+      this[COMMENTS_ADD](comment);
       callback && callback();
     },
-    onCommentChange: function(comment, callback) {
-      this.set(Help.update(this.comments, comment, "id"));
-      this.onDataUpdates();
+    onCommentsChange(comments, callback) {
+      this[COMMENTS_SET](comments);
       callback && callback();
-    },
-    onCommentDelete: function(id) {
-      this.set(Help.filter(this.comments, id, "id"));
-      this.onDataUpdates();
     }
   },
   computed: {
-    comments: function() {
+    comments() {
       return this.$store.state.comments;
     }
   }
@@ -63,42 +61,30 @@ export default {
 
 <style scoped>
 #comments-page {
+  position: relative;
   width: 100%;
-  min-height: 100vh;
+  min-height: calc(100vh - 64px);
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 .content-wrapper {
-  margin-top: 80px;
+  margin-top: 20px;
   margin-bottom: 60px;
   width: 80%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* border: 0.5px solid rgb(196, 194, 194); */
   border-radius: 5px;
   box-shadow: 5px 2px 45px 13px rgba(0, 0, 0, 0.14);
 }
-footer,
-header {
-  position: fixed;
+.md-toolbar.footer {
+  position: absolute;
   width: 100%;
-  background: rgb(33, 134, 112);
-  color: rgb(193, 240, 224);
-  min-height: 50px;
-  letter-spacing: 0.5px;
-  line-height: 50px;
-  min-height: 50px;
-  font-size: 20px;
-  font-weight: bold;
-  box-shadow: 5px 2px 20px 13px rgba(0, 0, 0, 0.14);
-  z-index: 10;
-}
-footer {
   bottom: 0;
-  min-height: 30px;
+  min-height: 40px;
   line-height: 30px;
+  font-size: 15px;
 }
 .form-holder {
   width: 100%;
@@ -107,10 +93,15 @@ footer {
   justify-content: center;
   align-items: center;
 }
+.input-holder {
+  position: relative;
+  margin: 5px;
+}
 .comments-holder {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
+  transition: height 0.3s;
 }
 </style>
